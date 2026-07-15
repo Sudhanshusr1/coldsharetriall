@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ColdShare — Buyer App</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --frost-navy:#16324F; --steel:#4C7B94; --steel-pale:#D8E6EC;
+  --grape:#6B2545; --grape-pale:#EFDCE3;
+  --mustard:#D9A441;
+  --paper:#F0F3F4; --ink:#14202A; --ink-soft:#4A5A64; --line:#C7D2D6;
+  --ok:#3E8E7E; --ok-pale:#DCEEE9;
+  --warn:#D9A441; --warn-pale:#F7EAD2;
+  --full:#8C3A4D; --full-pale:#F1DCE1;
+  --radius:10px; --shadow:0 2px 10px rgba(20,32,42,0.06);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;-webkit-font-smoothing:antialiased;}
+h1,h2,h3{font-family:'Space Grotesk',sans-serif;}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;background:var(--frost-navy);color:#fff;position:sticky;top:0;z-index:50;}
+.logo{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk';font-weight:700;font-size:20px;letter-spacing:-0.02em;}
+.logo .mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(140deg,var(--steel),var(--grape));display:grid;place-items:center;box-shadow:0 4px 12px rgba(107,37,69,0.4);flex:none;}
+.tabs{display:flex;gap:2px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:999px;padding:4px;}
+.tabs button{border:none;background:transparent;color:var(--steel-pale);padding:9px 18px;border-radius:999px;font-size:13.5px;font-weight:500;cursor:pointer;}
+.tabs button.active{background:var(--mustard);color:var(--frost-navy);font-weight:600;}
+.profile-chip{display:flex;align-items:center;gap:8px;font-size:13px;}
+.profile-chip .av{width:30px;height:30px;border-radius:50%;background:var(--grape);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:12px;}
+
+.screen{display:none;max-width:1180px;margin:0 auto;padding:36px 32px 80px;}
+.screen.active{display:block;animation:fadeIn .35s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.hero{margin-bottom:24px;}
+.eyebrow{font-family:'IBM Plex Mono';font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--grape);font-weight:500;margin-bottom:10px;}
+.hero h1{font-size:32px;line-height:1.15;margin:0 0 10px;color:var(--frost-navy);max-width:640px;letter-spacing:-0.01em;}
+.hero p{color:var(--ink-soft);font-size:15px;max-width:560px;line-height:1.5;margin:0;}
+
+.search-panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-top:20px;box-shadow:var(--shadow);}
+.search-row{display:grid;grid-template-columns:1.2fr 1fr 1.3fr 1fr auto;gap:12px;}
+.field label{display:block;font-size:11px;font-family:'IBM Plex Mono';color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}
+.field select,.field input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:7px;font-size:14px;color:var(--ink);background:#fff;font-family:'IBM Plex Sans';}
+.field select:focus,.field input:focus{outline:2px solid var(--grape);outline-offset:1px;}
+.btn-primary{background:var(--grape);color:#fff;border:none;padding:0 24px;border-radius:7px;font-weight:600;font-size:14px;cursor:pointer;align-self:end;height:42px;transition:background .15s ease;}
+.btn-primary:hover{background:#551C37;}
+.btn-primary:focus-visible{outline:2px solid var(--mustard);outline-offset:2px;}
+
+.results-head{display:flex;justify-content:space-between;align-items:baseline;margin:30px 0 14px;}
+.results-head h2{font-size:16px;color:var(--frost-navy);margin:0;}
+.results-count{font-family:'IBM Plex Mono';font-size:12.5px;color:var(--ink-soft);}
+.sort-row{display:flex;gap:8px;}
+.sort-chip{font-size:12px;font-family:'IBM Plex Mono';padding:5px 12px;border-radius:20px;border:1px solid var(--line);background:#fff;color:var(--ink-soft);cursor:pointer;}
+.sort-chip.active{background:var(--frost-navy);color:#fff;border-color:var(--frost-navy);}
+
+.chamber-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.chamber-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;display:flex;flex-direction:column;}
+.chamber-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(20,32,42,0.10);}
+.status-strip{height:5px;width:100%;}
+.status-strip.available{background:var(--ok);}
+.status-strip.partial{background:var(--warn);}
+.status-strip.full{background:var(--full);}
+.chamber-card .body{padding:16px 16px 14px;}
+.chamber-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+.facility-name{font-size:13px;color:var(--ink-soft);font-weight:500;}
+.chamber-id{font-family:'Space Grotesk';font-weight:700;font-size:16px;color:var(--frost-navy);margin-top:2px;}
+.temp-badge{font-family:'IBM Plex Mono';font-weight:600;font-size:18px;color:var(--steel);background:var(--steel-pale);padding:5px 10px;border-radius:7px;white-space:nowrap;}
+.chamber-meta{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;}
+.pill{font-size:11.5px;font-family:'IBM Plex Mono';background:var(--paper);border:1px solid var(--line);color:var(--ink-soft);padding:3px 9px;border-radius:20px;}
+.chamber-dates{font-size:12.5px;color:var(--ink-soft);margin-top:8px;}
+.chamber-dates strong{color:var(--ink);}
+.chamber-foot{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-top:1px dashed var(--line);background:#FAFBFB;}
+.price{font-family:'Space Grotesk';font-weight:700;color:var(--frost-navy);font-size:15px;}
+.price span{font-size:11px;font-weight:400;color:var(--ink-soft);}
+.status-label{font-size:11.5px;font-family:'IBM Plex Mono';text-transform:uppercase;letter-spacing:0.04em;}
+.status-label.available{color:var(--ok);}
+.status-label.partial{color:var(--warn);}
+.status-label.full{color:var(--full);}
+
+/* My bookings */
+.booking-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.booking-left h3{margin:0 0 4px;font-size:15.5px;color:var(--frost-navy);}
+.booking-left .meta{font-size:12.5px;color:var(--ink-soft);font-family:'IBM Plex Mono';}
+.booking-status{font-size:11.5px;font-family:'IBM Plex Mono';padding:5px 12px;border-radius:20px;font-weight:600;}
+.booking-status.active{background:var(--ok-pale);color:var(--ok);}
+.booking-status.upcoming{background:var(--warn-pale);color:#9C7526;}
+.booking-status.done{background:var(--paper);color:var(--ink-soft);border:1px solid var(--line);}
+.empty-note{text-align:center;padding:50px 20px;color:var(--ink-soft);font-size:13.5px;}
+
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(20,32,42,0.55);z-index:100;align-items:center;justify-content:center;padding:24px;}
+.overlay.active{display:flex;}
+.modal{background:#fff;border-radius:14px;max-width:640px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.25);}
+.modal-head{background:var(--frost-navy);color:#fff;padding:22px 26px;display:flex;justify-content:space-between;align-items:flex-start;}
+.modal-head h2{margin:0 0 4px;font-size:20px;}
+.modal-head .sub{font-family:'IBM Plex Mono';font-size:12px;color:var(--steel-pale);}
+.modal-close{background:rgba(255,255,255,0.12);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;}
+.modal-body{padding:24px 26px;}
+.spec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;}
+.spec-box{background:var(--paper);border-radius:8px;padding:12px 14px;}
+.spec-box .label{font-family:'IBM Plex Mono';font-size:10.5px;text-transform:uppercase;color:var(--ink-soft);letter-spacing:0.04em;}
+.spec-box .val{font-family:'Space Grotesk';font-weight:700;font-size:17px;color:var(--frost-navy);margin-top:3px;}
+.calendar-strip{display:flex;gap:4px;margin:14px 0 20px;flex-wrap:wrap;}
+.day{width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono';font-size:11px;color:var(--ink-soft);background:var(--paper);border:1px solid var(--line);}
+.day.free{background:var(--ok-pale);color:var(--ok);border-color:#BFE0D6;font-weight:600;}
+.day.booked{background:var(--full-pale);color:var(--full);border-color:#E6C3CB;}
+.trust-row{display:flex;gap:18px;margin:18px 0;padding:14px;background:var(--steel-pale);border-radius:8px;}
+.trust-item{flex:1;font-size:12.5px;color:var(--frost-navy);display:flex;gap:8px;align-items:flex-start;}
+.qty-row{display:flex;align-items:center;gap:12px;margin:16px 0;padding:14px;background:var(--paper);border-radius:8px;}
+.qty-row label{font-family:'IBM Plex Mono';font-size:11px;text-transform:uppercase;color:var(--ink-soft);letter-spacing:0.04em;}
+.qty-row input{width:100px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font-family:'IBM Plex Mono';font-size:14px;}
+.price-breakdown{border-top:1px solid var(--line);padding-top:16px;margin-top:8px;}
+.pb-row{display:flex;justify-content:space-between;font-size:13.5px;color:var(--ink-soft);padding:5px 0;}
+.pb-row.total{color:var(--ink);font-weight:700;font-size:15px;border-top:1px dashed var(--line);margin-top:6px;padding-top:10px;}
+.modal-actions{display:flex;gap:10px;margin-top:20px;}
+.btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink-soft);padding:0 20px;border-radius:7px;font-weight:600;font-size:14px;cursor:pointer;height:44px;}
+.btn-primary.wide{flex:1;height:44px;font-size:14.5px;}
+
+.persona-note{margin-top:26px;display:flex;gap:14px;align-items:flex-start;background:var(--grape-pale);border:1px solid #E0C4CE;border-radius:var(--radius);padding:14px 18px;}
+.persona-avatar{width:38px;height:38px;border-radius:50%;background:var(--grape);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;flex-shrink:0;}
+.persona-note p{margin:0;font-size:13.5px;color:#5A2338;line-height:1.5;}
+.persona-note strong{color:var(--grape);}
+
+@media (max-width:900px){
+  .search-row{grid-template-columns:1fr 1fr;}
+  .chamber-grid{grid-template-columns:1fr 1fr;}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo"><span class="mark"><svg viewBox="0 0 24 24" fill="none" width="19" height="19" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M12 2 9 5M12 2l3 3M12 22l-3-3M12 22l3-3"/><path d="M3.6 7 20.4 17M3.6 7l.4 4M3.6 7l3.8-1M20.4 17l-.4-4M20.4 17l-3.8 1"/><path d="M20.4 7 3.6 17M20.4 7l-3.8-1M20.4 7l-.4 4M3.6 17l3.8 1M3.6 17l.4-4"/></svg></span>ColdShare</div>
+  <div class="tabs">
+    <button class="active" onclick="showScreen('search',this)">Search</button>
+    <button onclick="showScreen('bookings',this)">My Bookings</button>
+  </div>
+  <div class="profile-chip"><div class="av">PJ</div> Priya Jagtap</div>
+</div>
+
+<!-- SEARCH -->
+<div class="screen active" id="screen-search">
+  <div class="hero">
+    <div class="eyebrow">Find storage</div>
+    <h1>Find the exact chamber that's free — not just a number.</h1>
+    <p>Search by location, temperature and dates. Book only the rack or chamber you need, at a price agreed upfront.</p>
+  </div>
+
+  <div class="search-panel">
+    <div class="search-row">
+      <div class="field"><label>Near</label>
+        <select><option>Niphad, Nashik</option><option>Lasalgaon, Nashik</option><option>Dindori, Nashik</option><option>Chandwad, Nashik</option></select>
+      </div>
+      <div class="field"><label>Temperature</label>
+        <select><option>4°C (Grapes)</option><option>-2°C (Frozen)</option><option>8°C (Pomegranate)</option><option>Any</option></select>
+      </div>
+      <div class="field"><label>Dates needed</label><input type="text" value="10 – 25 May" readonly></div>
+      <div class="field"><label>Quantity</label><input type="text" value="2,000 kg" readonly></div>
+      <button class="btn-primary" onclick="document.getElementById('results').scrollIntoView({behavior:'smooth'})">Search</button>
+    </div>
+  </div>
+
+  <div id="results">
+    <div class="results-head">
+      <h2>Chambers matching your search</h2>
+      <div class="sort-row">
+        <div class="sort-chip active">Nearest</div>
+        <div class="sort-chip">Cheapest</div>
+        <div class="sort-chip">Most space</div>
+      </div>
+    </div>
+    <div class="results-count" style="margin-bottom:14px;">6 of 14 chambers free · Niphad, 5km radius</div>
+
+    <div class="chamber-grid">
+      <div class="chamber-card" onclick="openModal('c1')">
+        <div class="status-strip available"></div>
+        <div class="body">
+          <div class="chamber-top"><div><div class="facility-name">Deshmukh Cold Storage</div><div class="chamber-id">Chamber 2 · Rack A</div></div><div class="temp-badge">4°C</div></div>
+          <div class="chamber-meta"><span class="pill">85% humidity</span><span class="pill">12 tonnes cap.</span><span class="pill">2.1 km away</span></div>
+          <div class="chamber-dates">Free <strong>May 10 – 25</strong></div>
+        </div>
+        <div class="chamber-foot"><div class="price">₹4.50<span> /kg/week</span></div><div class="status-label available">Available</div></div>
+      </div>
+
+      <div class="chamber-card" onclick="openModal('c2')">
+        <div class="status-strip partial"></div>
+        <div class="body">
+          <div class="chamber-top"><div><div class="facility-name">Jagtap Fruit Storage</div><div class="chamber-id">Chamber 1 · Rack C</div></div><div class="temp-badge">4°C</div></div>
+          <div class="chamber-meta"><span class="pill">80% humidity</span><span class="pill">6 tonnes cap.</span><span class="pill">3.4 km away</span></div>
+          <div class="chamber-dates">Partly free <strong>May 14 – 25</strong></div>
+        </div>
+        <div class="chamber-foot"><div class="price">₹4.80<span> /kg/week</span></div><div class="status-label partial">Partially free</div></div>
+      </div>
+
+      <div class="chamber-card" onclick="openModal('c3')">
+        <div class="status-strip available"></div>
+        <div class="body">
+          <div class="chamber-top"><div><div class="facility-name">Patil Agro Cold Chain</div><div class="chamber-id">Chamber 4 · Rack B</div></div><div class="temp-badge">2°C</div></div>
+          <div class="chamber-meta"><span class="pill">78% humidity</span><span class="pill">20 tonnes cap.</span><span class="pill">4.8 km away</span></div>
+          <div class="chamber-dates">Free <strong>May 1 – 31</strong></div>
+        </div>
+        <div class="chamber-foot"><div class="price">₹4.20<span> /kg/week</span></div><div class="status-label available">Available</div></div>
+      </div>
+
+      <div class="chamber-card" style="opacity:0.5;cursor:not-allowed;">
+        <div class="status-strip full"></div>
+        <div class="body">
+          <div class="chamber-top"><div><div class="facility-name">Deshmukh Cold Storage</div><div class="chamber-id">Chamber 1 · Rack A</div></div><div class="temp-badge">4°C</div></div>
+          <div class="chamber-meta"><span class="pill">85% humidity</span><span class="pill">12 tonnes cap.</span><span class="pill">2.1 km away</span></div>
+          <div class="chamber-dates">Booked through <strong>June 2</strong></div>
+        </div>
+        <div class="chamber-foot"><div class="price">—</div><div class="status-label full">Fully booked</div></div>
+      </div>
+
+      <div class="chamber-card" onclick="openModal('c5')">
+        <div class="status-strip available"></div>
+        <div class="body">
+          <div class="chamber-top"><div><div class="facility-name">Shinde Storage Hub</div><div class="chamber-id">Chamber 3 · Rack A</div></div><div class="temp-badge">5°C</div></div>
+          <div class="chamber-meta"><span class="pill">82% humidity</span><span class="pill">9 tonnes cap.</span><span class="pill">6.0 km away</span></div>
+          <div class="chamber-dates">Free <strong>May 8 – 28</strong></div>
+        </div>
+        <div class="chamber-foot"><div class="price">₹4.60<span> /kg/week</span></div><div class="status-label available">Available</div></div>
+      </div>
+
+      <div class="chamber-card" onclick="openModal('c6')">
+        <div class="status-strip partial"></div>
+        <div class="body">
+          <div class="chamber-top"><div><div class="facility-name">Patil Agro Cold Chain</div><div class="chamber-id">Chamber 2 · Rack D</div></div><div class="temp-badge">4°C</div></div>
+          <div class="chamber-meta"><span class="pill">80% humidity</span><span class="pill">4 tonnes cap.</span><span class="pill">4.8 km away</span></div>
+          <div class="chamber-dates">Partly free <strong>May 12 – 20</strong></div>
+        </div>
+        <div class="chamber-foot"><div class="price">₹4.90<span> /kg/week</span></div><div class="status-label partial">Partially free</div></div>
+      </div>
+    </div>
+
+    <div class="persona-note">
+      <div class="persona-avatar">PJ</div>
+      <p><strong>Priya Jagtap, pomegranate exporter</strong> — needs 2–3 weeks of storage before each shipment and doesn't own a facility. This search shows exactly what's free nearby, at the right temperature, for her exact dates — instead of selling early at a lower price or travelling far to a large operator.</p>
+    </div>
+  </div>
+</div>
+
+<!-- MY BOOKINGS -->
+<div class="screen" id="screen-bookings">
+  <div class="hero">
+    <div class="eyebrow">Your storage</div>
+    <h1>My bookings</h1>
+    <p>Track what's currently stored, what's coming up, and your booking history.</p>
+  </div>
+
+  <div style="margin-top:24px;">
+    <div class="booking-card">
+      <div class="booking-left">
+        <h3>Chamber 4, Rack B — Patil Agro Cold Chain</h3>
+        <div class="meta">2°C · 2,000 kg pomegranate · May 1 – 31</div>
+      </div>
+      <div class="booking-status active">Currently stored</div>
+    </div>
+    <div class="booking-card">
+      <div class="booking-left">
+        <h3>Chamber 2, Rack A — Deshmukh Cold Storage</h3>
+        <div class="meta">4°C · 2,000 kg · May 10 – 25 · Request sent</div>
+      </div>
+      <div class="booking-status upcoming">Awaiting confirmation</div>
+    </div>
+    <div class="booking-card">
+      <div class="booking-left">
+        <h3>Chamber 1, Rack C — Jagtap Fruit Storage</h3>
+        <div class="meta">4°C · 1,500 kg · Apr 2 – 18</div>
+      </div>
+      <div class="booking-status done">Completed</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div><h2 id="m-title">Chamber 2, Rack A</h2><div class="sub" id="m-sub">Deshmukh Cold Storage · Niphad, Nashik</div></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="spec-grid">
+        <div class="spec-box"><div class="label">Temperature</div><div class="val" id="m-temp">4°C</div></div>
+        <div class="spec-box"><div class="label">Humidity</div><div class="val" id="m-hum">85%</div></div>
+        <div class="spec-box"><div class="label">Capacity free</div><div class="val" id="m-size">12 t</div></div>
+      </div>
+
+      <div style="font-family:'IBM Plex Mono';font-size:10.5px;text-transform:uppercase;color:var(--ink-soft);letter-spacing:0.04em;margin-bottom:8px;">May 2026 availability</div>
+      <div class="calendar-strip">
+        <div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div><div class="day">7</div><div class="day">8</div><div class="day">9</div>
+        <div class="day free">10</div><div class="day free">11</div><div class="day free">12</div><div class="day free">13</div><div class="day free">14</div><div class="day free">15</div><div class="day free">16</div><div class="day free">17</div><div class="day free">18</div><div class="day free">19</div><div class="day free">20</div><div class="day free">21</div><div class="day free">22</div><div class="day free">23</div><div class="day free">24</div><div class="day free">25</div>
+        <div class="day booked">26</div><div class="day booked">27</div><div class="day booked">28</div><div class="day booked">29</div><div class="day booked">30</div><div class="day booked">31</div>
+      </div>
+
+      <div class="qty-row">
+        <label>Quantity to store</label>
+        <input type="text" value="2,000 kg">
+      </div>
+
+      <div class="trust-row">
+        <div class="trust-item">✓ Facility &amp; owner ID verified by ColdShare</div>
+        <div class="trust-item">✓ Temperature logged and visible during storage</div>
+      </div>
+
+      <div class="price-breakdown">
+        <div class="pb-row"><span>₹4.50/kg/week × 2,000 kg × 2 weeks</span><span>₹18,000</span></div>
+        <div class="pb-row"><span>ColdShare service fee</span><span>₹720</span></div>
+        <div class="pb-row total"><span>Total</span><span>₹18,720</span></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn-primary wide" onclick="alert('Booking request sent to the owner. You\'ll be notified once confirmed.'); closeModal();">Confirm booking</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showScreen(id, btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+const chamberData = {
+  c1:{title:'Chamber 2, Rack A', sub:'Deshmukh Cold Storage · Niphad, Nashik', temp:'4°C', hum:'85%', size:'12 t'},
+  c2:{title:'Chamber 1, Rack C', sub:'Jagtap Fruit Storage · Niphad, Nashik', temp:'4°C', hum:'80%', size:'6 t'},
+  c3:{title:'Chamber 4, Rack B', sub:'Patil Agro Cold Chain · Niphad, Nashik', temp:'2°C', hum:'78%', size:'20 t'},
+  c5:{title:'Chamber 3, Rack A', sub:'Shinde Storage Hub · Niphad, Nashik', temp:'5°C', hum:'82%', size:'9 t'},
+  c6:{title:'Chamber 2, Rack D', sub:'Patil Agro Cold Chain · Niphad, Nashik', temp:'4°C', hum:'80%', size:'4 t'}
+};
+function openModal(key){
+  const d = chamberData[key];
+  document.getElementById('m-title').textContent = d.title;
+  document.getElementById('m-sub').textContent = d.sub;
+  document.getElementById('m-temp').textContent = d.temp;
+  document.getElementById('m-hum').textContent = d.hum;
+  document.getElementById('m-size').textContent = d.size;
+  document.getElementById('overlay').classList.add('active');
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('active'); }
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+</script>
+</body>
+</html>

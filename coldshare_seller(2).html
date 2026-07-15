@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ColdShare — Seller App</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --frost-navy:#16324F; --steel:#4C7B94; --steel-pale:#D8E6EC;
+  --grape:#6B2545; --grape-pale:#EFDCE3;
+  --mustard:#D9A441;
+  --paper:#F0F3F4; --ink:#14202A; --ink-soft:#4A5A64; --line:#C7D2D6;
+  --ok:#3E8E7E; --ok-pale:#DCEEE9;
+  --warn:#D9A441; --warn-pale:#F7EAD2;
+  --full:#8C3A4D; --full-pale:#F1DCE1;
+  --radius:10px; --shadow:0 2px 10px rgba(20,32,42,0.06);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;-webkit-font-smoothing:antialiased;}
+h1,h2,h3{font-family:'Space Grotesk',sans-serif;}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;background:var(--frost-navy);color:#fff;position:sticky;top:0;z-index:50;}
+.logo{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk';font-weight:700;font-size:20px;letter-spacing:-0.02em;}
+.logo .mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(140deg,var(--steel),var(--grape));display:grid;place-items:center;box-shadow:0 4px 12px rgba(107,37,69,0.4);flex:none;}
+.tabs{display:flex;gap:2px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:999px;padding:4px;}
+.tabs button{border:none;background:transparent;color:var(--steel-pale);padding:9px 18px;border-radius:999px;font-size:13.5px;font-weight:500;cursor:pointer;}
+.tabs button.active{background:var(--mustard);color:var(--frost-navy);font-weight:600;}
+.profile-chip{display:flex;align-items:center;gap:8px;font-size:13px;}
+.profile-chip .av{width:30px;height:30px;border-radius:50%;background:var(--frost-navy);border:1px solid var(--mustard);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:12px;}
+
+.screen{display:none;max-width:1180px;margin:0 auto;padding:36px 32px 80px;}
+.screen.active{display:block;animation:fadeIn .35s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.dash-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:26px;flex-wrap:wrap;gap:14px;}
+.facility-card{display:flex;gap:16px;align-items:center;}
+.facility-icon{width:52px;height:52px;border-radius:10px;background:var(--frost-navy);color:var(--mustard);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:20px;}
+.facility-card h2{margin:0;font-size:19px;color:var(--frost-navy);}
+.facility-card .loc{font-size:12.5px;color:var(--ink-soft);font-family:'IBM Plex Mono';}
+.stat-row{display:flex;gap:14px;}
+.stat{background:#fff;border:1px solid var(--line);border-radius:9px;padding:12px 18px;text-align:center;min-width:96px;}
+.stat .n{font-family:'Space Grotesk';font-weight:700;font-size:22px;color:var(--frost-navy);}
+.stat .l{font-family:'IBM Plex Mono';font-size:10px;text-transform:uppercase;color:var(--ink-soft);letter-spacing:0.04em;}
+
+.section-label-row{display:flex;justify-content:space-between;align-items:center;margin:30px 0 12px;}
+.section-label{font-family:'IBM Plex Mono';font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--steel);font-weight:600;}
+.btn-add{background:var(--frost-navy);color:#fff;border:none;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;}
+.btn-add:hover{background:#0F2438;}
+
+.owner-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.owner-chamber{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+.owner-chamber .body{padding:14px;}
+.oc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.oc-id{font-family:'Space Grotesk';font-weight:700;font-size:15px;color:var(--frost-navy);}
+.oc-temp{font-family:'IBM Plex Mono';font-size:14px;color:var(--steel);font-weight:600;}
+.oc-cal{display:flex;gap:2px;margin:10px 0;}
+.oc-cal .d{flex:1;height:16px;border-radius:2px;}
+.oc-cal .d.free{background:var(--ok);}
+.oc-cal .d.booked{background:var(--full);}
+.oc-cal .d.partial{background:var(--warn);}
+.oc-foot{font-size:11.5px;color:var(--ink-soft);display:flex;justify-content:space-between;}
+.edit-link{display:block;text-align:center;padding:9px;background:var(--paper);border-top:1px dashed var(--line);font-size:12px;font-weight:600;color:var(--frost-navy);cursor:pointer;}
+.edit-link:hover{background:var(--steel-pale);}
+
+.booking-list{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
+.booking-row{display:grid;grid-template-columns:1fr 1fr 1fr auto auto;gap:14px;padding:14px 18px;align-items:center;border-bottom:1px solid var(--paper);}
+.booking-row:last-child{border-bottom:none;}
+.booking-row .who{font-weight:600;font-size:13.5px;}
+.booking-row .what{font-size:12.5px;color:var(--ink-soft);font-family:'IBM Plex Mono';}
+.tag-status{font-size:11px;font-family:'IBM Plex Mono';padding:3px 10px;border-radius:20px;font-weight:600;justify-self:end;}
+.tag-status.confirmed{background:var(--ok-pale);color:var(--ok);}
+.tag-status.pending{background:var(--warn-pale);color:#9C7526;}
+.row-actions{display:flex;gap:6px;}
+.btn-mini{border:1px solid var(--line);background:#fff;padding:5px 12px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;}
+.btn-mini.accept{background:var(--ok);color:#fff;border-color:var(--ok);}
+
+.persona-note{margin-bottom:24px;display:flex;gap:14px;align-items:flex-start;background:var(--steel-pale);border:1px solid #B9D3DE;border-radius:var(--radius);padding:14px 18px;}
+.persona-avatar{width:38px;height:38px;border-radius:50%;background:var(--frost-navy);color:var(--mustard);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;flex-shrink:0;}
+.persona-note p{margin:0;font-size:13.5px;color:var(--frost-navy);line-height:1.5;}
+
+/* Add chamber form */
+.form-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px;max-width:640px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.form-field label{display:block;font-size:11px;font-family:'IBM Plex Mono';color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;}
+.form-field input,.form-field select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-family:'IBM Plex Sans';}
+.form-field input:focus,.form-field select:focus{outline:2px solid var(--steel);outline-offset:1px;}
+.form-hint{font-size:12px;color:var(--ink-soft);margin-top:-8px;margin-bottom:16px;}
+.form-actions{display:flex;gap:10px;margin-top:8px;}
+.btn-primary{background:var(--frost-navy);color:#fff;border:none;padding:0 24px;border-radius:7px;font-weight:600;font-size:14px;cursor:pointer;height:44px;}
+.btn-primary:hover{background:#0F2438;}
+.btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink-soft);padding:0 20px;border-radius:7px;font-weight:600;font-size:14px;cursor:pointer;height:44px;}
+
+@media (max-width:900px){
+  .owner-grid{grid-template-columns:1fr 1fr;}
+  .form-row{grid-template-columns:1fr;}
+  .booking-row{grid-template-columns:1fr;gap:6px;}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo"><span class="mark"><svg viewBox="0 0 24 24" fill="none" width="19" height="19" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M12 2 9 5M12 2l3 3M12 22l-3-3M12 22l3-3"/><path d="M3.6 7 20.4 17M3.6 7l.4 4M3.6 7l3.8-1M20.4 17l-.4-4M20.4 17l-3.8 1"/><path d="M20.4 7 3.6 17M20.4 7l-3.8-1M20.4 7l-.4 4M3.6 17l3.8 1M3.6 17l.4-4"/></svg></span>ColdShare</div>
+  <div class="tabs">
+    <button class="active" onclick="showScreen('dashboard',this)">Dashboard</button>
+    <button onclick="showScreen('requests',this)">Requests</button>
+    <button onclick="showScreen('addchamber',this)">Add Chamber</button>
+  </div>
+  <div class="profile-chip"><div class="av">VD</div> Vikram Deshmukh</div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="screen active" id="screen-dashboard">
+  <div class="dash-head">
+    <div class="facility-card">
+      <div class="facility-icon">VD</div>
+      <div><h2>Deshmukh Cold Storage</h2><div class="loc">NIPHAD, NASHIK · 4 CHAMBERS</div></div>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="n">58%</div><div class="l">Utilised</div></div>
+      <div class="stat"><div class="n">3</div><div class="l">Bookings</div></div>
+      <div class="stat"><div class="n">₹18.4k</div><div class="l">This month</div></div>
+    </div>
+  </div>
+
+  <div class="persona-note">
+    <div class="persona-avatar">VD</div>
+    <p><strong>Your problem, solved chamber by chamber:</strong> full Feb–April, 40–50% empty the rest of the year — and until now you could only tell brokers "I have some free space." Below is every chamber listed on its own, with its own temperature and calendar, so buyers see and book exactly what's free.</p>
+  </div>
+
+  <div class="section-label-row">
+    <div class="section-label">Chambers &amp; zones</div>
+    <button class="btn-add" onclick="showScreen('addchamber', document.querySelectorAll('.tabs button')[2])">+ Add chamber</button>
+  </div>
+  <div class="owner-grid">
+    <div class="owner-chamber">
+      <div class="body">
+        <div class="oc-top"><div class="oc-id">Chamber 1</div><div class="oc-temp">4°C</div></div>
+        <div class="oc-cal"><div class="d booked"></div><div class="d booked"></div><div class="d booked"></div><div class="d booked"></div><div class="d booked"></div><div class="d booked"></div><div class="d booked"></div><div class="d free"></div></div>
+        <div class="oc-foot"><span>12 tonnes</span><span style="color:var(--full);font-weight:600;">Booked</span></div>
+      </div>
+      <div class="edit-link">Edit availability</div>
+    </div>
+    <div class="owner-chamber">
+      <div class="body">
+        <div class="oc-top"><div class="oc-id">Chamber 2, Rack A</div><div class="oc-temp">4°C</div></div>
+        <div class="oc-cal"><div class="d free"></div><div class="d free"></div><div class="d free"></div><div class="d free"></div><div class="d free"></div><div class="d free"></div><div class="d free"></div><div class="d free"></div></div>
+        <div class="oc-foot"><span>12 tonnes</span><span style="color:var(--ok);font-weight:600;">Free May 10–25</span></div>
+      </div>
+      <div class="edit-link">Edit availability</div>
+    </div>
+    <div class="owner-chamber">
+      <div class="body">
+        <div class="oc-top"><div class="oc-id">Chamber 3</div><div class="oc-temp">-2°C</div></div>
+        <div class="oc-cal"><div class="d partial"></div><div class="d partial"></div><div class="d free"></div><div class="d free"></div><div class="d free"></div><div class="d booked"></div><div class="d booked"></div><div class="d booked"></div></div>
+        <div class="oc-foot"><span>8 tonnes</span><span style="color:var(--warn);font-weight:600;">Partly free</span></div>
+      </div>
+      <div class="edit-link">Edit availability</div>
+    </div>
+    <div class="owner-chamber">
+      <div class="body">
+        <div class="oc-top"><div class="oc-id">Chamber 4</div><div class="oc-temp">6°C</div></div>
+        <div class="oc-cal"><div class="d free"></div><div class="d free"></div><div class="d free"></div><div class="d free"></div><div class="d free"></div><div class="d free"></div><div class="d free"></div><div class="d free"></div></div>
+        <div class="oc-foot"><span>10 tonnes</span><span style="color:var(--ok);font-weight:600;">Fully free</span></div>
+      </div>
+      <div class="edit-link">Edit availability</div>
+    </div>
+  </div>
+</div>
+
+<!-- REQUESTS -->
+<div class="screen" id="screen-requests">
+  <div class="section-label" style="margin-top:0;">Booking requests</div>
+  <div class="booking-list">
+    <div class="booking-row">
+      <div><div class="who">Priya Jagtap</div><div class="what">Pomegranate exporter</div></div>
+      <div class="what">Chamber 2, Rack A · 4°C</div>
+      <div class="what">May 10 – 25</div>
+      <div class="tag-status confirmed">Confirmed</div>
+      <div class="row-actions"><button class="btn-mini">Message</button></div>
+    </div>
+    <div class="booking-row">
+      <div><div class="who">Ramesh Pawar</div><div class="what">Tomato &amp; onion trader</div></div>
+      <div class="what">Chamber 3 · -2°C</div>
+      <div class="what">May 16 – 23</div>
+      <div class="tag-status pending">Awaiting you</div>
+      <div class="row-actions"><button class="btn-mini accept" onclick="alert('Booking confirmed. Ramesh Pawar has been notified.')">Accept</button><button class="btn-mini">Decline</button></div>
+    </div>
+    <div class="booking-row">
+      <div><div class="who">Nashik Fresh Exports</div><div class="what">Grape exporter</div></div>
+      <div class="what">Chamber 1 · 4°C</div>
+      <div class="what">Feb 1 – May 5</div>
+      <div class="tag-status confirmed">Confirmed</div>
+      <div class="row-actions"><button class="btn-mini">Message</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CHAMBER -->
+<div class="screen" id="screen-addchamber">
+  <div class="section-label" style="margin-top:0;">List a new chamber or rack</div>
+  <p style="color:var(--ink-soft);font-size:13.5px;max-width:560px;margin:-4px 0 20px;">List only the part that's actually free — not a total for the whole facility. Buyers search and book at this level.</p>
+  <div class="form-card">
+    <div class="form-row">
+      <div class="form-field"><label>Chamber / rack name</label><input type="text" placeholder="e.g. Chamber 2, Rack B"></div>
+      <div class="form-field"><label>Temperature</label><input type="text" placeholder="e.g. 4°C"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-field"><label>Humidity</label><input type="text" placeholder="e.g. 85%"></div>
+      <div class="form-field"><label>Capacity</label><input type="text" placeholder="e.g. 8 tonnes"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-field"><label>Free from</label><input type="text" placeholder="dd/mm/yyyy"></div>
+      <div class="form-field"><label>Free until</label><input type="text" placeholder="dd/mm/yyyy"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-field"><label>Price</label><input type="text" placeholder="₹ per kg per week"></div>
+      <div class="form-field"><label>Produce suited for</label>
+        <select><option>Grapes</option><option>Pomegranate</option><option>Tomato &amp; onion</option><option>General produce</option></select>
+      </div>
+    </div>
+    <div class="form-hint">This chamber will appear in buyer search results the moment you save it.</div>
+    <div class="form-actions">
+      <button class="btn-ghost" onclick="showScreen('dashboard', document.querySelectorAll('.tabs button')[0])">Cancel</button>
+      <button class="btn-primary" onclick="alert('Chamber listed. Buyers searching Niphad at this temperature will now see it.'); showScreen('dashboard', document.querySelectorAll('.tabs button')[0]);">Save &amp; list chamber</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showScreen(id, btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
